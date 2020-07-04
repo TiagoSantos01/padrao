@@ -3,7 +3,7 @@ const app = require('express')(),
     io = require('socket.io')(http),
     expressLayouts = require('express-ejs-layouts'),
 
-    port = 8000;
+    port = 3001;
 
 app.set('view engine', 'ejs');
 
