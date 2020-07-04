@@ -3,6 +3,6 @@ const routes = require("express").Router(),
     controllers = require("./controller/controllers");
 
 //  POST
-routes.post('/',jsonParser, controllers.home);
+routes.get('/',jsonParser, controllers.home);
 
 module.exports = routes;
