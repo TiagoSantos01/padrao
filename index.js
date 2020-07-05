@@ -1,5 +1,6 @@
-const app = require('express')(),
-    http = require('http').Server(app),
+const express = require('express'),
+    http = require('http').Server(express()),
+    app=express();
     io = require('socket.io')(http),
     expressLayouts = require('express-ejs-layouts'),
 
@@ -9,7 +10,7 @@ app.set('view engine', 'ejs');
 
 app.use(expressLayouts);
 app.use("/", require("./src/routes"));
-app.use(app.static(__dirname + '/'));
+app.use(express.static(__dirname + '/'));
 
 io.on('Connection', (socket) => {
     socket.on("teste"), (msg) => {
