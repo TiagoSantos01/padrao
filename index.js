@@ -14,7 +14,6 @@ const Chave = 'sessao',
     Cookie = CookieParser(ChaveSecreta),
     Store = new ExpressSession.MemoryStore();
 
-App.use("/", require("./src/routes"));
 App.set('views', __dirname + '/views');
 App.set('view engine', 'ejs');
 App.use(Cookie);
@@ -41,6 +40,7 @@ Io.use((socket, proximo) => {
         });
     });
 });
+App.use("/", require("./src/routes"));
 
 Io.on('connection', (cliente) => {
     console.log("+");
