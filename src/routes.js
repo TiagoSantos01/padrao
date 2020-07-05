@@ -3,6 +3,8 @@ const routes = require("express").Router(),
     controllers = require("./controller/controllers");
 
 //  POST
-routes.get('/',jsonParser, controllers.home);
+// routes.get('/', jsonParser, controllers.home);
 
-module.exports = routes;
+module.exports=app=>{
+   app.get('/', jsonParser, controllers.home);
+};

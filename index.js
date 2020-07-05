@@ -1,55 +1,57 @@
-const Chave = 'sessao',
-    ChaveSecreta = 'ticotest',
+const KEY = 'express.sid',
+    SECRET = 'express',
+    express = require("express"),
+    app = express(),
     Fs = require('fs'),
-    Express = require('express'),
-    CookieParser = require('cookie-parser'),
-    ExpressSession = require('express-session'),
-    App = Express(),
     options = {
         key: Fs.readFileSync('key.pem'),
         cert: Fs.readFileSync('cert.pem')
     },
-    Server = require('https').createServer(options, App).listen(3001),
-    Io = require('socket.io').listen(Server),
-    Cookie = CookieParser(ChaveSecreta),
-    Store = new ExpressSession.MemoryStore();
-
-App.set('views', __dirname + '/views');
-App.set('view engine', 'ejs');
-App.use(Cookie);
-App.use(ExpressSession({
-    secret: ChaveSecreta,
-    name: Chave,
-    resave: true,
-    saveUninitialized: true,
-    store: Store
-}));
+    server = require("https").createServer(options, app),
+    io = require("socket.io").listen(server),
+    cookie = express.cookieParser(SECRET),
+    store = new express.session({
+        secret: SECRET,
+        key: KEY,
+        store: store
+    });
 
 
-Io.use((socket, proximo) => {
-    let dados = socket.request;
-    Cookie(dados, {}, (err) => {
-        let SessaoID = dados.signedCookies[Chave];
-        Store.get(SessaoID, (err, sessao) => {
-            if (err || !sessao) {
-                return proximo(new Error('Acesso Negado! :( '));
-            } else {
-                socket.handshake.session = sessao;
-                return proximo();
-            }
+    app.configure(()=>{
+        app.set('view engine', 'ejs');
+        app.use(cookie);
+        app.use(session);
+    })
+
+rotas=require("src/routes")(app)
+server.listen(3001, function(){
+    console.log("Express e Socket.IO no ar.");
+  });
+
+   // Configurações do Socket.IO
+ io.set('authorization', function(data, accept) {
+    cookie(data, {}, function(err) {
+      if (!err) {
+        var sessionID = data.signedCookies[KEY];
+        store.get(sessionID, function(err, session) {
+          if (err || !session) {
+            accept(null, false);
+          } else {
+            data.session = session;
+            accept(null, true);
+          }
         });
+      } else {
+        accept(null, false);
+      }
     });
-});
-App.use("/", require("./src/routes"));
-
-Io.on('connection', (cliente) => {
-    console.log("+");
-    let sessao = cliente.handshake.session;
-    cliente.on('admin', (msg) => {
-
-        cliente.broadcast.emit("admin", msg);
+  });
+  io.sockets.on('connection', function (client) {
+    var session = client.handshake.session
+      , nome = session.nome;
+    client.on('toServer', function (msg) {
+      msg = "<b>"+nome+":</b> "+msg+"<br>";
+      client.emit('toClient', msg);
+      client.broadcast.emit('toClient', msg);
     });
-});
-
-
-
+  });
