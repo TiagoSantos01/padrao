@@ -1,22 +1,56 @@
-const express = require('express'),
-    app=express(),
-    http = require('http').Server(app()),
-    io = require('socket.io')(http),
-    expressLayouts = require('express-ejs-layouts'),
+const Chave = 'sessao',
+    ChaveSecreta = 'ticotest',
+    Fs = require('fs'),
+    Express = require('express'),
+    CookieParser = require('cookie-parser'),
+    ExpressSession = require('express-session'),
+    App = Express(),
+    options = {
+        key: Fs.readFileSync('key.pem'),
+        cert: Fs.readFileSync('cert.pem')
+    },
+    Server = require('https').createServer(options, App).listen(3001),
+    Io = require('socket.io').listen(Server),
+    Cookie = CookieParser(ChaveSecreta),
+    Store = new ExpressSession.MemoryStore();
 
-    port = 3001;
+App.use("/", require("./src/routes"));
+App.use(express.static(__dirname + '/'));
+App.set('views', __dirname + '/views');
+App.set('view engine', 'ejs');
+App.use(Cookie);
+App.use(ExpressSession({
+    secret: ChaveSecreta,
+    name: Chave,
+    resave: true,
+    saveUninitialized: true,
+    store: Store
+}));
 
-app.set('view engine', 'ejs');
 
-app.use(expressLayouts);
-app.use("/", require("./src/routes"));
-app.use(express.static(__dirname + '/'));
-
-io.on('Connection', (socket) => {
-    socket.on("teste"), (msg) => {
-        io.emit("teste", msg);
-}
+Io.use((socket, proximo) => {
+    let dados = socket.request;
+    Cookie(dados, {}, (err) => {
+        let SessaoID = dados.signedCookies[Chave];
+        Store.get(SessaoID, (err, sessao) => {
+            if (err || !sessao) {
+                return proximo(new Error('Acesso Negado! :( '));
+            } else {
+                socket.handshake.session = sessao;
+                return proximo();
+            }
+        });
+    });
 });
-http.listen(port,()=>{
-    console.log("online")
-})
+
+Io.on('connection', (cliente) => {
+    console.log("+");
+    let sessao = cliente.handshake.session;
+    cliente.on('admin', (msg) => {
+
+        cliente.broadcast.emit("admin", msg);
+    });
+});
+
+
+
