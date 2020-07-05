@@ -9,7 +9,7 @@ app.set('view engine', 'ejs');
 
 app.use(expressLayouts);
 app.use("/", require("./src/routes"));
-app.use(express.static(__dirname + '/'));
+app.use(app.static(__dirname + '/'));
 
 io.on('Connection', (socket) => {
     socket.on("teste"), (msg) => {
