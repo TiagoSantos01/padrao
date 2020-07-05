@@ -1,6 +1,6 @@
 const express = require('express'),
-    http = require('http').Server(express()),
-    app=express();
+    app=express(),
+    http = require('http').Server(app()),
     io = require('socket.io')(http),
     expressLayouts = require('express-ejs-layouts'),
 
