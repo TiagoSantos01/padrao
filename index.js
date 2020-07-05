@@ -15,7 +15,7 @@ const Chave = 'sessao',
     Store = new ExpressSession.MemoryStore();
 
 App.set('views', __dirname + '/views');
-App.use(Express.static(__dirname));
+App.use(Express.static(__dirname + '/public'));
 App.set('view engine', 'ejs');
 App.use(Cookie);
 App.use(ExpressSession({
