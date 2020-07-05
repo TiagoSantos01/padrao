@@ -24,6 +24,7 @@ App.use(ExpressSession({
     saveUninitialized: true,
     store: Store
 }));
+App.use("/", require("./src/routes"));
 
 
 Io.use((socket, proximo) => {
@@ -40,7 +41,6 @@ Io.use((socket, proximo) => {
         });
     });
 });
-App.use("/", require("./src/routes"));
 
 Io.on('connection', (cliente) => {
     console.log("+");
