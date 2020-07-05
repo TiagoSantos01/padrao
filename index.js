@@ -9,12 +9,11 @@ const KEY = 'express.sid',
     },
     server = require("https").createServer(options, app),
     io = require("socket.io").listen(server),
-    cookie = express.cookieParser(SECRET),
-    store = new express.session({
-        secret: SECRET,
-        key: KEY,
-        store: store
-    });
+    cookie = express.cookieParser(SECRET)
+    , store = new express.session.MemoryStore()
+   , session = express.session({secret: SECRET
+                              , key: KEY
+                              , store: store});
 
 
     app.configure(()=>{
